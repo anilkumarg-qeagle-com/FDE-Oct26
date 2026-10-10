@@ -1,0 +1,26 @@
+[
+    {
+        "invoice_id": 101,
+        "amount": 1500.0,
+        "status": "Paid",
+        "vendor": "ABC Ltd."
+    },
+    {
+        "invoice_id": 102,
+        "vendor": "Test Limited",
+        "amount": 45000.0,
+        "status": "Pending"
+    },
+    {
+        "invoice_id": 103,
+        "amount": 3000.0,
+        "status": "PAID",
+        "vendor": "Sathyam Computers"
+    },
+    {
+        "invoice_id": 104,
+        "vendor": "ABC Ltd.",
+        "amount": 1500.0,
+        "status": "Paid"
+    }
+]
