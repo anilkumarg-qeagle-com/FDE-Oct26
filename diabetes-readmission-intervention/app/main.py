@@ -1,15 +1,15 @@
 from typing import Optional
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-import repository, service
-from config import APP_NAME
-from errors import ConfigurationError, DatabaseUnavailableError, NotFoundError
-from models import HealthResponse, InterventionStatus, InterventionUpdate, ManagementDashboard, OperationsSummary, Readmitted, ReadmissionAnalysis, RiskLevel
+from . import repository, service
+from .config import APP_NAME
+from .errors import ConfigurationError, DatabaseUnavailableError, NotFoundError
+from .models import EncounterCreate, HealthResponse, InterventionStatus, InterventionUpdate, ManagementDashboard, OperationsSummary, Readmitted, ReadmissionAnalysis, RiskLevel
 app = FastAPI(title=APP_NAME, description="EDUCATIONAL PROTOTYPE - not clinically validated and not for patient-care decisions. Risk rules are illustrative; the historical `readmitted` outcome is never used for scoring.")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5174", "http://127.0.0.1:5173"],
+    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:5176", "http://127.0.0.1:5173", "http://127.0.0.1:5174", "http://localhost:5500", "http://127.0.0.1:5500"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -33,6 +33,11 @@ def health(): return {"status": "ok"}
 @app.get("/encounters", summary="List diabetes encounters")
 def list_encounters(risk_level: Optional[RiskLevel] = None, readmitted: Optional[Readmitted] = None, limit: int = LIMIT, offset: int = OFFSET):
     return repository.list_encounters(_value(risk_level), _value(readmitted), limit, offset)
+
+@app.post("/encounters", status_code=status.HTTP_201_CREATED, summary="Create a diabetes encounter")
+def create_encounter(payload: EncounterCreate):
+    """Scores the encounter with the risk rules, assigns the next encounter_id and queues a care intervention when MEDIUM/HIGH."""
+    return repository.insert_encounter(service.build_new_encounter(payload.model_dump()))
 
 @app.get("/encounters/{encounter_id}", summary="Get one encounter with its intervention")
 def get_encounter(encounter_id: int):

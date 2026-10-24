@@ -2,7 +2,7 @@
 
 EDUCATIONAL PROTOTYPE: the scoring weights are learning assumptions, not clinically validated rules.
 """
-from errors import ImportDataError
+from .errors import ImportDataError
 REQUIRED_COLUMNS = ("encounter_id", "patient_nbr", "age", "time_in_hospital", "number_inpatient", "number_emergency", "number_outpatient", "num_medications", "num_lab_procedures", "num_procedures", "admission_type_id", "discharge_disposition_id", "readmitted")
 INT_COLUMNS = ("encounter_id", "patient_nbr", "time_in_hospital", "number_inpatient", "number_emergency", "number_outpatient", "num_medications", "num_lab_procedures", "num_procedures", "admission_type_id", "discharge_disposition_id")
 NULL_LIKE = {"", "?", "NULL", "NA", "N/A", "NAN"}
@@ -28,6 +28,15 @@ def calculate_risk(encounter: dict) -> dict:
             reasons.append(reason)
     level = "HIGH" if score >= 5 else "MEDIUM" if score >= 3 else "LOW"
     return {"risk_score": score, "risk_level": level, "review_reason": "; ".join(reasons) or "No prioritization rules triggered"}
+
+def build_new_encounter(payload: dict) -> dict:
+    """Turn validated form input into a patient_encounters record: unknown fields stay None (never invented), risk is scored from the input.
+
+    encounter_id is assigned by the repository; `readmitted` is a historical outcome, so a brand-new encounter has none.
+    """
+    encounter = {column: None for column in INT_COLUMNS + ("age", "readmitted")}
+    encounter.update({key: value for key, value in payload.items() if key in encounter})
+    return {**encounter, **calculate_risk(encounter)}
 
 def validate_columns(header: list) -> None:
     missing = [column for column in REQUIRED_COLUMNS if column not in (header or [])]

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Diabetes Patient Management</title>
+   </head>
+   <body>
+      <h2> Diabetes Patient Management System </h2>
+      <div>
+            <h3> Add Patient Encounter </h3>
+      </div>
+      <section id="patient-encounter-list">
+         <form id="encounter-form">
+            <div>
+               <label for="patient-number">Patient Number</label><br>
+               <input type="number" min="1" id="patient-number" name="patient-number" required>
+            </div>
+            <div>
+               <label for="age">Age</label><br>
+               <select id="age" name="age">
+                  <option value="">Age Group</option>
+                  <option value="[0-10)">[0-10)</option>
+                  <option value="[10-20)">[10-20)</option>
+                  <option value="[20-30)">[20-30)</option>
+                  <option value="[30-40)">[30-40)</option>
+                  <option value="[40-50)">[40-50)</option>
+                  <option value="[50-60)">[50-60)</option>
+                  <option value="[60-70)">[60-70)</option>
+                  <option value="[70-80)">[70-80)</option>
+                  <option value="[80-90)">[80-90)</option>
+                  <option value="[90-100)">[90-100)</option>
+               </select>
+            </div>
+            <div>
+               <label for="time-in-hospital">Time in Hospital (days)</label><br>
+               <input type="number" id="time-in-hospital" name="time-in-hospital" required min="0">
+            </div>
+            <div>
+               <label for="inpatient-visits">Inpatient Visits</label><br>
+               <input type="number" id="inpatient-visits" name="inpatient-visits" required min="0">
+            </div>
+            <div>
+               <label for="emergency-visits">Emergency Visits</label><br>
+               <input type="number" id="emergency-visits" name="emergency-visits" required min="0">
+            </div>
+            <div>
+               <label for="medications">Medications</label><br>
+               <input type="number" id="medications" name="medications" required min="0">
+            </div>
+            <div>
+               <button type="submit">Add &gt;</button>
+            </div>
+         </form>
+      </section>
+      <p id="message" role="status"></p>
+      <section>
+         <h3> Created Encounters </h3>
+         <table border="1" cellpadding="4">
+            <thead>
+               <tr><th>Encounter ID</th><th>Patient</th><th>Age</th><th>Days</th><th>Inpatient</th><th>Emergency</th><th>Meds</th><th>Risk</th><th>Reason</th></tr>
+            </thead>
+            <tbody id="encounter-rows"></tbody>
+         </table>
+      </section>
+      <script type="module" src="dist/app.js"></script>
+   </body>
+</html>

@@ -22,6 +22,14 @@ class Readmitted(str, Enum):
 class HealthResponse(BaseModel):
     status: str
 
+class EncounterCreate(BaseModel):
+    patient_nbr: int = Field(gt=0)
+    age: Optional[str] = Field(default=None, pattern=r"^\[\d{1,2}-\d{2,3}\)$", description="Age group, e.g. [60-70)")
+    time_in_hospital: int = Field(ge=0)
+    number_inpatient: int = Field(ge=0)
+    number_emergency: int = Field(ge=0)
+    num_medications: int = Field(ge=0)
+
 class InterventionUpdate(BaseModel):
     status: Optional[InterventionStatus] = None
     assigned_to: Optional[str] = Field(default=None, max_length=100)

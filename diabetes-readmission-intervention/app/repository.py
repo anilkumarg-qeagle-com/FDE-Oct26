@@ -1,5 +1,5 @@
 """All SQL lives here. Every value is passed as a psycopg parameter (%s); only fixed SQL fragments are ever joined into a query."""
-from database import get_connection
+from .database import get_connection
 ENCOUNTER_COLUMNS = ("encounter_id", "patient_nbr", "age", "time_in_hospital", "number_inpatient", "number_emergency", "number_outpatient", "num_medications", "num_lab_procedures", "num_procedures", "admission_type_id", "discharge_disposition_id", "readmitted", "risk_score", "risk_level", "review_reason")
 QUEUE_SELECT = """
     SELECT e.encounter_id, e.patient_nbr, e.age, e.risk_score, e.risk_level, e.review_reason,
@@ -39,6 +39,21 @@ def list_care_queue(risk_level, status, assigned_to, limit, offset):
     if assigned_to: clauses.append("ci.assigned_to = %s"); params.append(assigned_to)
     order = "ORDER BY CASE e.risk_level WHEN 'HIGH' THEN 0 ELSE 1 END, ci.created_at, ci.intervention_id"
     return _fetch_all(f"{QUEUE_SELECT} {_where(clauses)} {order} LIMIT %s OFFSET %s", (*params, limit, offset))
+
+def insert_encounter(encounter):
+    """Insert one encounter (and its care intervention when MEDIUM/HIGH) in one transaction. encounter_id = max + 1.
+
+    The advisory lock serializes concurrent inserts so two requests cannot compute the same id.
+    """
+    columns = [column for column in ENCOUNTER_COLUMNS if column != "encounter_id"]
+    with get_connection() as conn:
+        conn.execute("SELECT pg_advisory_xact_lock(hashtext('patient_encounters.insert'))")
+        created = conn.execute(
+            f"INSERT INTO patient_encounters (encounter_id, {', '.join(columns)}) "
+            f"VALUES ((SELECT COALESCE(MAX(encounter_id), 0) + 1 FROM patient_encounters), {', '.join(f'%({c})s' for c in columns)}) RETURNING *",
+            encounter).fetchone()
+        if created["risk_level"] != "LOW": create_interventions(conn, [created["encounter_id"]])
+        return created
 
 def update_intervention(encounter_id, status, assigned_to, notes):
     """Returns the updated row, or None when the encounter has no intervention. Fields left as None are kept unchanged."""
